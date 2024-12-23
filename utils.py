@@ -6,11 +6,12 @@ def clip_to_unit_range(image):
 
 def darkChannel(img,r = 15):
     '''
-    @Description :求取暗通道图
-                  np.min实现三通道中的最小值;cv2.erode实现了窗口中的最小值 
-    @Parameter   :img为原始图像
-    @Parameter   :r  为窗口大小
-    @Return      :原始图像的暗通道图
+    @Description :求取暗通道图(get darkchannel feature)
+                  np.min实现三通道中的最小值;cv2.erode实现了窗口中的最小值
+                  (np.min get minimum value of RGB channel; cv2.erode get minimum value of slide window)
+    @Parameter   :img为原始图像 (img is an original image)
+    @Parameter   :r  为窗口大小 (r is the size of slide window)
+    @Return      :原始图像的暗通道图 (darkchannel image of img)
     '''
     DarkChann = cv2.erode(np.min(img,2),np.ones((r,r)))
 
@@ -19,9 +20,11 @@ def darkChannel(img,r = 15):
 def estimateA(img,darkChann):
     '''
     @Description :将按通道中前0.1%亮度的像素定位到原图中,并在这些位置上求取各个通道的均值以作为三通道的全局大气光A   
-    @Parameter   :img为原始图像
-    @Parameter   :darkChann为暗通道图
-    @Return      :三通道下的A
+                  (The pixels with the brightness of the top 0.1% in the channel are located in the original image, 
+                  and the mean value of each channel is obtained at these positions to serve as the global atmospheric light A of the three channels)
+    @Parameter   :img为原始图像 (img is an original image)
+    @Parameter   :darkChann为暗通道图 (darkChann is darkchannel image of img)
+    @Return      :三通道下的A (global atmospheric light A of RGB channel)
     '''
 
     h,w,_  = img.shape
@@ -55,12 +58,13 @@ def haze_linear(R, t, L):
     - I: Synthetic hazy image with the same size as the input clean image R.
     """
     
-    # 获取图像通道数
+    # 获取图像通道数 (get nums of image channels)
     image_channels = L.shape[2]
 
-    # 复制传输映射至所有通道
+    # 复制传输映射至所有通道 (transmission map array is mapped to all channels)
     t_replicated = np.repeat(t[...], image_channels, axis=-1)
-    # 应用线性雾霾模型
+    
+    # 应用线性雾霾模型 (apply linear haze model)
     I = t_replicated * R + (1 - t_replicated) * np.tile(L, (t.shape[0], t.shape[1], 1))
 
     return I
