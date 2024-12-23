@@ -46,7 +46,7 @@ def _gf_color(I, p, r, eps,):
     var_I_bb = cv2.boxFilter(I[:,:,2] * I[:,:,2], -1, r) / N - mI_b * mI_b
 
 #######################
-# 计算速度可以优化
+# 计算速度可以优化(calculate speed can be optimised by unfold for-loop)
 
 # (1080*1920) time: 32.599939823150635
     # a = np.zeros((h, w, 3))
@@ -64,9 +64,9 @@ def _gf_color(I, p, r, eps,):
 # 老子优化完了hhhh
 # (1080*1920) time: 1.556933879852295
     # 将一维的 covIp 向量转换为三维，以便与 sig 矩阵进行匹配操作
+    # convert 1-d covIp to 3-d for matching with sig matrix
     covIp_3d = np.stack((covIp_r, covIp_g, covIp_b), axis=-1)
 
-    # 创建一个对角矩阵用于添加方差矩阵中
     eps_eye = eps * np.eye(3)
 
     var_I_transposed = np.stack((
@@ -74,14 +74,15 @@ def _gf_color(I, p, r, eps,):
         var_I_rg, var_I_gg, var_I_gb,
         var_I_rb, var_I_gb, var_I_bb
     ), axis=-1).reshape((h,w,3,3))
+    
     # 批量计算逆矩阵并解线性方程组
+    # calculate inverse matrix and sove linear equations
     a = np.linalg.solve(var_I_transposed + eps_eye[None, None,:,:], covIp_3d)
 ######################################
     b = mP - a[:,:,0] * mI_r - a[:,:,1] * mI_g - a[:,:,2] * mI_b
 
     meanA = cv2.boxFilter(a, -1, r) / N[...,np.newaxis]
     meanB = cv2.boxFilter(b, -1, r) / N
-
 
     q = np.sum(meanA * I, axis=2) + meanB
 
